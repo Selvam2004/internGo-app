@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "internGo",
+    "slug": "internGo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.selvam2004.internGo"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.selvam2004.internGo"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "4968fee5-3027-4804-9bfe-51fb07236841"
+      }
+    },
+    "runtimeVersion": "1.0.0",
+"updates": {
+  "enabled": true,
+  "url": "https://u.expo.dev/4968fee5-3027-4804-9bfe-51fb07236841",
+  "checkAutomatically": "ON_LOAD",
+  "fallbackToCacheTimeout": 0
+}
+
+  }
+}
