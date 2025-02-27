@@ -23,6 +23,7 @@ const  ProgressBar = ({ progress }) => {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
+    paddingVertical:10,
     borderRadius: 12,
     backgroundColor: '#fff',
     shadowColor: '#000',
@@ -32,13 +33,13 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   title: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 4,
     color: '#333',
   },
   barContainer: {
-    height: 12,
+    height: 8,
     backgroundColor: '#ddd',
     borderRadius: 8,
     overflow: 'hidden',
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   percentage: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '500',
     textAlign: 'right',
     color: '#555',
