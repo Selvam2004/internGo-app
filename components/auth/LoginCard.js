@@ -59,7 +59,7 @@ const LoginCard = ({navigation}) => {
                 }
             } 
         }
-        catch(err){ 
+        catch (err) {  
             const msg = JSON.stringify(err.response?.data?.message)||"Something went wrong while Signin";
             showToast('error',msg);             
         }

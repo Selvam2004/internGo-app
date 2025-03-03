@@ -16,7 +16,7 @@ export const fetchNotifications = createAsyncThunk(
         notifications = notifications.map((dt) => ({
           id: dt.id,
           message: dt.message,
-          type: dt.type,
+          type: dt.type?.split("-")[0] +" "+ dt.type?.split("-")[1],
           timestamp: new Date(dt.createdAt).toLocaleString("en-US", {
             year: "numeric",
             month: "long",
@@ -62,18 +62,21 @@ const NotificationSlice = createSlice({
   initialState: {
     notifications: [],
     announcement: [],
+    badge:0,
     loading: false,
     error: null,
   },
   reducers: { 
     addNotification: (state, action) => {
       state.notifications.unshift(action.payload);
+      state.badge = state.badge + 1;
     },
-    removeNotification: (state, action) => {
-      state.notifications = state.notifications.filter((n) => n.id !== action.payload);
+    removeNotification: (state, action) => { 
+      state.notifications = state.notifications.filter((n) => n.id !== Number(action.payload));
     },
     markAsRead: (state) => {
       state.notifications = state.notifications.map((n) => ({ ...n, isRead: true }));
+      state.badge = 0;
     },
     clearAllNotifications: (state) => {
       state.notifications = [];
@@ -89,7 +92,13 @@ const NotificationSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchNotifications.fulfilled, (state, action) => {
+        const count = action.payload.reduce((acc, val) => {
+          if (!val.isRead) {
+          return acc+1
+          }
+        }, 0) 
         state.loading = false;
+        state.badge = count;
         state.notifications = action.payload;
       })
       .addCase(fetchNotifications.rejected, (state, action) => {

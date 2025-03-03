@@ -1,5 +1,5 @@
 import { View  } from 'react-native';
-import React, { useEffect, useState }  from 'react'; 
+import React, { useEffect, useRef, useState }  from 'react'; 
 import NotificationCard from '../../components/notifications/NotificationCard';
 import { useDispatch, useSelector } from 'react-redux';
 import { markAsRead, removeNotification } from '../../redux/reducers/NotificationSlice';
@@ -12,7 +12,15 @@ export default function Notification() {
   const {userId} = useSelector(state=>state.auth.data?.data);
   const dispatch = useDispatch();
   let noti = useSelector(state=>state.notifications.notifications)||[]; 
-  const [notifications,setNotifications] = useState(noti);
+  const [notifications, setNotifications] = useState(noti);
+const lastProcessedKey = useRef(null);
+
+  const handleSwipe = (key, value) => {
+    if (value === 360 && lastProcessedKey.current !== key) {
+      lastProcessedKey.current = key;  
+      handleClear(key); 
+    }
+  };
   useEffect(()=>{
     setNotifications(noti);
   },[noti])
@@ -30,7 +38,8 @@ export default function Notification() {
       console.log(err.response.data?.message);      
     }
   } 
-  const handleClear = async(id)=>{    
+  const handleClear = async (id) => {  
+       
     dispatch(removeNotification(id)); 
     try{ 
       await axiosInstance.delete(`api/notifications/delete`,{
@@ -58,14 +67,12 @@ export default function Notification() {
       renderHiddenItem={renderHidden}
       leftOpenValue={360} 
       onSwipeValueChange={(swipeData) => { 
-        const { key, value } = swipeData;
-        if (value > 360) { 
-          handleClear(key);
-        }
+        const { key, value } = swipeData; 
+        handleSwipe(key,value)
       }}
       disableLeftSwipe  
       swipeToOpenPercent={10} 
-      showsVerticalScrollIndicator={false}
+      showsVerticalScrollIndicator={false}      
     />
     </View>
   );

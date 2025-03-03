@@ -1,4 +1,4 @@
-import { Text, StyleSheet,  ScrollView, View, TextInput, TouchableOpacity, Modal  } from 'react-native'
+import { Text, StyleSheet,  ScrollView, View, TextInput, TouchableOpacity, Modal, ActivityIndicator  } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react' 
 import { axiosInstance } from '../../utils/axiosInstance' 
 import DailyUpdatesViewTable from '../../components/dailyupdates/DailyUpdatesViewTable';
@@ -151,7 +151,7 @@ export default function TaskTable({route}) {
                 <Text style={styles.filterBadgeText}>Filters</Text>
               </TouchableOpacity>
           {
-          loading?<View style={{flex:1,justifyContent:'center',height:500}}><Text style={{textAlign:'center'}}>Loading...</Text></View>:
+          loading?<View style={{flex:1,justifyContent:'center',height:450,flexDirection:'row',justifyContent:'center',alignItems:'center'}}><ActivityIndicator/><Text style={{textAlign:'center'}}>Loading...</Text></View>:
          <> 
  
           {(dailyTask&&dailyTask.length>0)?

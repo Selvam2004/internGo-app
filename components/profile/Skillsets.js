@@ -1,10 +1,4 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Modal, 
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Modal } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import Icon from "react-native-vector-icons/MaterialIcons";
@@ -18,7 +12,8 @@ export default function Skillsets({ edit, user, fetchUser }) {
   const [selectedSecondarySkills, setSelectedSecondarySkills] = useState([]);
   const [skill, setSkill] = useState(user["secondary_skills"] || []);
   const [primarySkill, setPrimarySkill] = useState(user["primary_skill"] || "");
-  const [availableSkills, setAvailableSkills] = useState([
+  const [currentSkill, setCurrentSkill] = useState("");
+  const availableSkills = [
     "JavaScript",
     "Python",
     "Java",
@@ -54,12 +49,13 @@ export default function Skillsets({ edit, user, fetchUser }) {
     "Fortran",
     "COBOL",
     "Scratch",
-  ]);
+  ];
 
   useEffect(() => {
     if (user) {
       setSkill(user["secondary_skills"] || []);
       setPrimarySkill(user["primary_skill"] || "");
+      setSelectedSecondarySkills(user["secondary_skills"] || []);
     }
   }, [user]);
 
@@ -79,20 +75,8 @@ export default function Skillsets({ edit, user, fetchUser }) {
       showToast("error", "Please select a primary skill");
       return;
     }
-    if (selectedSecondarySkills.length === 0) {
-      showToast("error", "Please select at least one secondary skill");
-      return;
-    }
 
-    const newSkills = selectedSecondarySkills.filter(
-      (skl) => !skill.includes(skl)
-    );
-    if (newSkills.length === 0) {
-      showToast("error", "Skills already added");
-      return;
-    }
-
-    handleSubmit([...skill, ...newSkills]);
+    handleSubmit(selectedSecondarySkills);
   };
 
   const handleSubmit = async (skills) => {
@@ -107,8 +91,8 @@ export default function Skillsets({ edit, user, fetchUser }) {
       if (response) {
         fetchUser();
         setModalVisible(false);
-        setSelectedSecondarySkills([]); // Reset secondary skills
-        setPrimarySkill(""); // Reset primary skill
+        setSelectedSecondarySkills([]);
+        setPrimarySkill("");
       }
     } catch (err) {
       const msg =
@@ -117,12 +101,12 @@ export default function Skillsets({ edit, user, fetchUser }) {
       showToast("error", msg);
     }
   };
-
-  const handleRemove = (text) => {
-    const newSkills = skill.filter((skl) => skl !== text);
-    setSkill(newSkills);
-  };
-
+  
+  const handleModalOpen = () => {
+          setPrimarySkill(user["primary_skill"] || "");
+    setSelectedSecondarySkills(user["secondary_skills"] || []);
+    setModalVisible(true)
+  }
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
@@ -135,7 +119,7 @@ export default function Skillsets({ edit, user, fetchUser }) {
               display: role === "Admins" ? (edit ? "" : "none") : "",
             },
           ]}
-          onPress={() => setModalVisible(true)}
+          onPress={handleModalOpen}
         >
           <Icon name="edit" style={styles.editIcon} size={18} color="white" />
           <Text style={styles.editText}>Edit</Text>
@@ -144,7 +128,7 @@ export default function Skillsets({ edit, user, fetchUser }) {
 
       <View style={styles.skillsView}>
         <Text style={styles.skillsLabel}>
-          Primary Skill: {primarySkill || "Not set"}
+          Primary Skill: {user.primary_skill || "Not set"}
         </Text>
         <Text style={styles.skillsLabel}>Secondary Skills:</Text>
         <View style={styles.badgesContainer}>
@@ -152,13 +136,10 @@ export default function Skillsets({ edit, user, fetchUser }) {
             skill.map((skl, index) => (
               <View key={index} style={styles.badge}>
                 <Text style={styles.badgeText}>{skl}</Text>
-                <TouchableOpacity onPress={() => handleRemove(skl)}>
-                  <Text style={styles.cancel}>x</Text>
-                </TouchableOpacity>
               </View>
             ))
           ) : (
-            <Text style={styles.noSkillsText}>None</Text>
+            <Text style={styles.noSkillsText}>No Skills Available</Text>
           )}
         </View>
       </View>
@@ -180,34 +161,69 @@ export default function Skillsets({ edit, user, fetchUser }) {
                   selectedValue={primarySkill}
                   onValueChange={(itemValue) => setPrimarySkill(itemValue)}
                   style={styles.picker}
+                  mode="dropdown"
                 >
-                  <Picker.Item label="Select Primary Skill" value="" />
-                  {availableSkills.map((skill, index) => (
-                    <Picker.Item key={index} label={skill} value={skill} />
-                  ))}
+                  <Picker.Item
+                    label="Select Primary Skill"
+                    value=""
+                    color="gray"
+                    enabled={false}
+                  />
+                  {availableSkills.map((skill, index) => {
+                    const isDisabled =
+                      selectedSecondarySkills.includes(skill)  
+                    return (
+                      <Picker.Item
+                        key={index}
+                        label={skill}
+                        value={skill}
+                        enabled={!isDisabled}
+                        color={isDisabled ? "gray" : ""}
+                      />
+                    );
+                  })}
                 </Picker>
               </View>
               <View style={styles.modalField}>
                 <Text style={styles.modalLabel}>Secondary Skills</Text>
                 <Picker
-                  selectedValue=""
+                  mode="dropdown" 
+                  selectedValue={currentSkill}
                   onValueChange={(itemValue) => {
                     if (
                       !selectedSecondarySkills.includes(itemValue) &&
-                      itemValue
+                      itemValue != primarySkill
                     ) {
                       setSelectedSecondarySkills([
                         ...selectedSecondarySkills,
                         itemValue,
                       ]);
+                      setCurrentSkill(itemValue)
                     }
                   }}
                   style={styles.picker}
                 >
-                  <Picker.Item label="Select Secondary Skills" value="" />
-                  {availableSkills.map((skill, index) => (
-                    <Picker.Item key={index} label={skill} value={skill} />
-                  ))}
+                  <Picker.Item
+                    label="Select Secondary Skills"
+                    value=""
+                    color="gray"
+                    enabled={false}
+                  />
+                  {availableSkills.map((skill, index) => {
+                    const isDisabled =
+                      selectedSecondarySkills.includes(skill) ||
+                      skill === primarySkill;
+
+                    return (
+                      <Picker.Item
+                        key={index}
+                        label={skill}
+                        value={skill}
+                        enabled={!isDisabled}
+                        color={isDisabled&&skill!=currentSkill ? "gray" : ""}
+                      />
+                    );
+                  })}
                 </Picker>
               </View>
             </View>
@@ -247,7 +263,6 @@ export default function Skillsets({ edit, user, fetchUser }) {
 const styles = StyleSheet.create({
   container: {
     marginTop: 15,
-    padding: 16, // Added padding to the outer view
   },
   headerRow: {
     flexDirection: "row",
@@ -274,9 +289,18 @@ const styles = StyleSheet.create({
   skillsView: {
     marginTop: 10,
     marginBottom: 20,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
   skillsLabel: {
     fontSize: 16,
+    marginBottom: 10,
     fontWeight: "600",
     color: "#333",
   },
@@ -328,7 +352,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   picker: {
-    height: 50,
+    height: 55,
     width: "100%",
     backgroundColor: "#f8f8f8",
     borderRadius: 5,

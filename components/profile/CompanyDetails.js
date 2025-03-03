@@ -13,14 +13,14 @@ import { useSelector } from 'react-redux';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { axiosInstance } from '../../utils/axiosInstance';
 import { TextInput } from 'react-native-gesture-handler';
+import Toast from 'react-native-toast-message';
 
 const DEFAULT = "---";
 
-export default function EmployeeDetails({ user,edit, fetchUser , token }) {
+export default function EmployeeDetails({ user,edit, fetchUser  }) {
   const [isModalVisible, setModalVisible] = useState(false);
   const [isDatePickerVisible, setDatePickerVisible] = useState(false); 
-  const role = useSelector((state) => state.auth.data?.data.role); 
-  
+  const role = useSelector((state) => state.auth.data?.data.role);  
   const [fields, setFields] = useState({
     designation: user.designation  ,
     status: user.status  ,
@@ -32,7 +32,17 @@ export default function EmployeeDetails({ user,edit, fetchUser , token }) {
     year:Number(user.year)
 
   });
-  
+  const showToast = (state, message) => {
+    Toast.show({
+      type: state,
+      text1: "Professional Details",
+      text2: message,
+      position: "top",
+      swipeable: true,
+      visibilityTime: 1500,
+    });
+  };
+
   useEffect(()=>{
     if(user){
       setFields({
@@ -64,7 +74,13 @@ export default function EmployeeDetails({ user,edit, fetchUser , token }) {
         }        
       }
     });
-
+    if (update.year) {
+      const year = new Date().getFullYear();
+      if (update.year>year||update.year<2020) {
+        showToast('error', 'Please enter a valid year')
+        return
+      }
+    }
     if (Object.keys(update).length > 0) { 
       handleSubmit(update);
     }
@@ -72,23 +88,16 @@ export default function EmployeeDetails({ user,edit, fetchUser , token }) {
 
   const handleSubmit = async(update)=>{
     try{  
-      const response = await axiosInstance.patch(`/api/users/update/${user.id}`,{...update},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, 
-          }
-        }
-      );
+      const response = await axiosInstance.patch(`/api/users/update/${user.id}`,{...update});
       if(response){
         fetchUser();
+        setModalVisible(false); 
       }
     }
-    catch(err){
-      console.log(err);
-    }
-    finally{ 
-      setModalVisible(false);  
-    }
+    catch (err) {
+      const msg = JSON.stringify(err.response.data.message)||'Error occured while updating Details.'
+      showToast('error', msg);
+    } 
   }
 
 
@@ -121,7 +130,7 @@ export default function EmployeeDetails({ user,edit, fetchUser , token }) {
         <TouchableOpacity
           style={[
             styles.editButton,
-            { flexDirection: 'row', display: role === 'Admins' ? '' : 'none' },
+            { flexDirection: "row", display: role === "Admins" ? "" : "none" },
           ]}
           onPress={handleEdit}
         >
@@ -130,8 +139,7 @@ export default function EmployeeDetails({ user,edit, fetchUser , token }) {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.table}> 
-
+      <View style={styles.table}>
         <View style={styles.row}>
           <Text style={styles.label}>Designation</Text>
           <Text style={styles.value}>{user.designation || DEFAULT}</Text>
@@ -147,29 +155,37 @@ export default function EmployeeDetails({ user,edit, fetchUser , token }) {
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>Date of Joining</Text>
-          <Text style={styles.value}>{user.dateOfJoining?.split('T')[0] || DEFAULT}</Text>
-        </View> 
-        {(!edit||role=='Interns')&&<View style={styles.row}>
-          <Text style={styles.label}>Batch</Text>
-          <Text style={styles.value}>{user.batch || DEFAULT}</Text>
+          <Text style={styles.value}>
+            {user.dateOfJoining?.split("T")[0] || DEFAULT}
+          </Text>
         </View>
-        }
+        {(!edit || role == "Interns") && (
+          <View style={styles.row}>
+            <Text style={styles.label}>Batch</Text>
+            <Text style={styles.value}>{user.batch || DEFAULT}</Text>
+          </View>
+        )}
 
-        {(!edit||role=='Interns') &&<View style={styles.row}>
-          <Text style={styles.label}>Phase</Text>
-          <Text style={styles.value}>{user.phase || DEFAULT}</Text>
-        </View>
-        }
-        {(!edit||role=='Interns')&&<View style={styles.row}>
-          <Text style={styles.label}>Year</Text>
-          <Text style={styles.value}>{user.year || DEFAULT}</Text>
-        </View>
-        }
-        {(!edit||role=='Interns')&&<View style={styles.row}>
-          <Text style={styles.label}>Certificate Submission</Text>
-          <Text style={styles.value}>{user.certificates_submission_status?"YES":"NO" || DEFAULT}</Text>
-        </View>
-        }
+        {(!edit || role == "Interns") && (
+          <View style={styles.row}>
+            <Text style={styles.label}>Phase</Text>
+            <Text style={styles.value}>{user.phase || DEFAULT}</Text>
+          </View>
+        )}
+        {(!edit || role == "Interns") && (
+          <View style={styles.row}>
+            <Text style={styles.label}>Year</Text>
+            <Text style={styles.value}>{user.year || DEFAULT}</Text>
+          </View>
+        )}
+        {(!edit || role == "Interns") && (
+          <View style={styles.row}>
+            <Text style={styles.label}>Certificate Submission</Text>
+            <Text style={styles.value}>
+              {user.certificates_submission_status ? "YES" : "NO" || DEFAULT}
+            </Text>
+          </View>
+        )}
       </View>
 
       <Modal
@@ -181,105 +197,131 @@ export default function EmployeeDetails({ user,edit, fetchUser , token }) {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalHeading}>Edit Employee Details</Text>
-            <ScrollView >
+            <ScrollView>
               <View style={styles.modalField}>
                 <Text style={styles.modalLabel}>Designation</Text>
                 <View style={styles.picker}>
-                <Picker
-                  selectedValue={fields.designation}
-                  onValueChange={(value) => handleChange('designation', value)}
-                >
-                  <Picker.Item label="Select Designation" />
-                  <Picker.Item label="frontend" value="frontend" />
-                  <Picker.Item label="backend" value="backend" />
-                  <Picker.Item label="testing" value="testing" />
-                  <Picker.Item label="devops" value="devops" />
-                </Picker>
+                  <Picker
+                    selectedValue={fields.designation}
+                    onValueChange={(value) =>
+                      handleChange("designation", value)
+                    }
+                  >
+                    <Picker.Item label="Select Designation" />
+                    <Picker.Item label="Frontend" value="Frontend" />
+                    <Picker.Item label="Backend" value="Backend" />
+                    <Picker.Item label="Testing" value="Testing" />
+                  </Picker>
                 </View>
               </View>
               <View style={styles.modalField}>
                 <Text style={styles.modalLabel}>Employee ID</Text>
-                <View style={[styles.picker,{padding:15}]}> 
-                  <TextInput value={fields.employeeId} onChangeText={(text)=>handleChange('employeeId',text)}/>
-                 </View>
+                <View style={[styles.picker, { padding: 15 }]}>
+                  <TextInput
+                    value={fields.employeeId}
+                    onChangeText={(text) => handleChange("employeeId", text)}
+                  />
+                </View>
               </View>
               <View style={styles.modalField}>
                 <Text style={styles.modalLabel}>Status</Text>
                 <View style={styles.picker}>
-                <Picker
-                  selectedValue={fields.status}
-                  onValueChange={(value) => handleChange('status', value)}
-                >
-                  <Picker.Item label="Select Status" />
-                  <Picker.Item label="ACTIVE" value="ACTIVE" />
-                  <Picker.Item label="NOT_ACTIVE" value="NOT_ACTIVE" />
-                  <Picker.Item label="EXAMINATION" value="EXAMINATION" />
-                  <Picker.Item label="SHADOWING" value="SHADOWING" />
-                  <Picker.Item label="DEPLOYED" value="DEPLOYED" />
-                </Picker>
+                  <Picker
+                    selectedValue={fields.status}
+                    onValueChange={(value) => handleChange("status", value)}
+                  >
+                    <Picker.Item label="Select Status" />
+                    <Picker.Item label="ACTIVE" value="ACTIVE" />
+                    <Picker.Item label="NOT_ACTIVE" value="NOT_ACTIVE" />
+                    <Picker.Item label="EXAMINATION" value="EXAMINATION" />
+                    <Picker.Item label="SHADOWING" value="SHADOWING" />
+                    <Picker.Item label="DEPLOYED" value="DEPLOYED" />
+                  </Picker>
                 </View>
               </View>
 
               <View style={styles.modalField}>
                 <Text style={styles.modalLabel}>Date of Joining</Text>
-                <TouchableOpacity onPress={showDatePicker} style={styles.modalInput}>
-                  <Text style={{ color: fields.dateOfJoining === DEFAULT ? '#aaa' : '#333',padding:8 }}>
-                    {fields.dateOfJoining === DEFAULT ? 'Select Date' : fields.dateOfJoining}
+                <TouchableOpacity
+                  onPress={showDatePicker}
+                  style={styles.modalInput}
+                >
+                  <Text
+                    style={{
+                      color: fields.dateOfJoining === DEFAULT ? "#aaa" : "#333",
+                      padding: 8,
+                    }}
+                  >
+                    {fields.dateOfJoining === DEFAULT
+                      ? "Select Date"
+                      : fields.dateOfJoining}
                   </Text>
                 </TouchableOpacity>
               </View>
 
-              {!edit&&role=='Admins'&& <View style={styles.modalField}>
-                <Text style={styles.modalLabel}>Batch</Text>
-                <View style={styles.picker}>
-                <Picker
-                  selectedValue={fields.batch}
-                  onValueChange={(value) => handleChange('batch', value)}
-                >
-                  <Picker.Item label="Select Batch" />
-                  <Picker.Item label="Batch 1" value="Batch 1" />
-                  <Picker.Item label="Batch 2" value="Batch 2" />
-                  <Picker.Item label="Batch 3" value="Batch 3" />
-                </Picker>
+              {!edit && role == "Admins" && (
+                <View style={styles.modalField}>
+                  <Text style={styles.modalLabel}>Batch</Text>
+                  <View style={styles.picker}>
+                    <Picker
+                      selectedValue={fields.batch}
+                      onValueChange={(value) => handleChange("batch", value)}
+                    >
+                      <Picker.Item label="Select Batch" />
+                      <Picker.Item label="Batch 1" value="Batch 1" />
+                      <Picker.Item label="Batch 2" value="Batch 2" />
+                      <Picker.Item label="Batch 3" value="Batch 3" />
+                    </Picker>
+                  </View>
                 </View>
-              </View>
-                }
-              {!edit&&role=='Admins'&&<View style={styles.modalField}>
-                <Text style={styles.modalLabel}>Phase</Text>
-                <View style={styles.picker}>
-                <Picker
-                  selectedValue={fields.phase}
-                  onValueChange={(value) => handleChange('phase', value)}
-                >
-                  <Picker.Item label="Select Phase" />
-                  <Picker.Item label="Phase 1" value="Phase 1" />
-                  <Picker.Item label="Phase 2" value="Phase 2" />
-                  <Picker.Item label="Phase 3" value="Phase 3" />
-                </Picker>
+              )}
+              {!edit && role == "Admins" && (
+                <View style={styles.modalField}>
+                  <Text style={styles.modalLabel}>Phase</Text>
+                  <View style={styles.picker}>
+                    <Picker
+                      selectedValue={fields.phase}
+                      onValueChange={(value) => handleChange("phase", value)}
+                    >
+                      <Picker.Item label="Select Phase" />
+                      <Picker.Item label="Phase 1" value="Phase 1" />
+                      <Picker.Item label="Phase 2" value="Phase 2" />
+                      <Picker.Item label="Phase 3" value="Phase 3" />
+                    </Picker>
+                  </View>
                 </View>
-              </View>
-                }          
-               {!edit&&role=='Admins'&&<View style={styles.modalField}>
-                <Text style={styles.modalLabel}>Year</Text>
-                <View style={[styles.picker,{padding:15}]}> 
-                  <TextInput keyboardType='numeric' value={fields.year} onChangeText={(text)=>handleChange('year',text)}/>
-                 </View>
-              </View>
-                }      
-              {!edit&&role=='Admins'&&<View style={styles.modalField}>
-                <Text style={styles.modalLabel}>Certificate Submission Status</Text>
-                <View style={styles.picker}>
-                <Picker
-                  selectedValue={fields.certificates_submission_status}
-                  onValueChange={(value) => handleChange('certificates_submission_status', value)}
-                >
-                  <Picker.Item label="Select Status" />
-                  <Picker.Item label="Yes" value={true}/>
-                  <Picker.Item label="No" value={false} /> 
-                </Picker>
+              )}
+              {!edit && role == "Admins" && (
+                <View style={styles.modalField}>
+                  <Text style={styles.modalLabel}>Year</Text>
+                  <View style={[styles.picker, { padding: 15 }]}>
+                    <TextInput
+                      keyboardType="numeric"
+                      value={fields.year?.toString()}
+                      onChangeText={(text) => handleChange("year", text)}
+                    />
+                  </View>
                 </View>
-              </View>
-                }
+              )}
+              {!edit && role == "Admins" && (
+                <View style={styles.modalField}>
+                  <Text style={styles.modalLabel}>
+                    Certificate Submission Status
+                  </Text>
+                  <View style={styles.picker}>
+                    <Picker
+                      selectedValue={fields.certificates_submission_status}
+                      onValueChange={(value) =>
+                        handleChange("certificates_submission_status", value)
+                      }
+                    >
+                      <Picker.Item label="Select Status" />
+                      <Picker.Item label="Yes" value={true} />
+                      <Picker.Item label="No" value={false} />
+                    </Picker>
+                  </View>
+                </View>
+              )}
             </ScrollView>
             <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
               <Text style={styles.saveButtonText}>Save</Text>
@@ -289,14 +331,15 @@ export default function EmployeeDetails({ user,edit, fetchUser , token }) {
             </TouchableOpacity>
           </View>
         </View>
+        <Toast />
       </Modal>
 
       <DateTimePickerModal
         isVisible={isDatePickerVisible}
         mode="date"
-        onConfirm={ handleDateConfirm}
+        onConfirm={handleDateConfirm}
         onCancel={hideDatePicker}
-      /> 
+      />
     </View>
   );
 }

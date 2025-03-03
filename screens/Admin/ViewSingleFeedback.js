@@ -78,7 +78,7 @@ export default function ViewSingleFeedback({route}) {
         </View>}
 
         <View style={styles.card}> 
-          <Text style={styles.label}>Description:</Text>
+          <Text style={styles.label}>Feedback:</Text>
           <Text style={{padding:5}}>{description}</Text> 
         </View>  
         </View>

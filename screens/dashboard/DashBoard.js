@@ -29,8 +29,8 @@ import { addNotification, setNotifications,markAsRead, setAnnouncement, addAnnou
 import AddUsers from '../Admin/AddUsers'; 
 import Toast from 'react-native-toast-message';
 import Analytics from '../Admin/Analytics';
-import { fetchMentors, setMentors } from '../../redux/reducers/MentorSlice';
-import { fetchFilters, setFilters } from '../../redux/reducers/FilterSlice';
+import { fetchMentors } from '../../redux/reducers/MentorSlice';
+import { fetchFilters } from '../../redux/reducers/FilterSlice';
 import MentorHome from '../Mentor/MentorHome';
 import AdminHome from '../Admin/AdminHome';
 import Help from '../User/Help';
@@ -48,8 +48,8 @@ export default function DashBoard( ) {
     dispatch(logout());
   }
   const Drawer = createDrawerNavigator()
-  const [badgeCount, setBadgeCount] = useState(0);  
- 
+  const badgeCount = useSelector(state => state.notifications?.badge) || 0;
+  
 
   useEffect(() => {   
     socket.connect();
@@ -63,8 +63,7 @@ export default function DashBoard( ) {
         year: "numeric", month: "long", day: "numeric", 
         hour: "2-digit", minute: "2-digit"
     }),isRead:dt.isRead}
-      showToast(newNotification.type,newNotification.message)
-      setBadgeCount(prev=>prev+1);
+      showToast(newNotification.type,newNotification.message) 
       dispatch(addNotification(newNotification))
     });
     
@@ -107,8 +106,7 @@ export default function DashBoard( ) {
       dispatch(fetchFilters());
     }
   },[])
-  const handleNotification = ()=>{ 
-    setBadgeCount(0);
+  const handleNotification = ()=>{  
     navigation.navigate('Notifications')
   }
  
