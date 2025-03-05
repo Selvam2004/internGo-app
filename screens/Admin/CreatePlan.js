@@ -10,7 +10,7 @@ import { useFocusEffect } from "@react-navigation/native";
 export default function CreatePlan() { 
   const [loading,setLoading] = useState(false);
   const [error,setError] = useState("");
-  const [plans,setPlans] = useState([]);
+  const [plans, setPlans] = useState([]);
 
   const fetchPlans  = async()=>{
     try{
@@ -35,18 +35,21 @@ export default function CreatePlan() {
   ); 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {loading?(
-                <View style={styles.loadingContainer}> 
-                    <ActivityIndicator size="large" color="#0000ff" />
-                    <Text style={styles.loadingText}>loading...</Text>
-                </View>
-             ):
-      error?<ErrorPage onRetry={fetchPlans}/>:
-      <View>
-      <Text style={styles.heading}>Create</Text>
-      <CreateCard  fetchPlans={fetchPlans}/>
-      <Plans plan={plans}/>
-      </View>}
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0000ff" />
+          <Text style={styles.loadingText}>loading...</Text>
+        </View>
+      ) : error ? (
+        <ErrorPage onRetry={fetchPlans} />
+      ) : (
+        <View>
+          <Text style={styles.heading}>Create</Text>
+          <CreateCard fetchPlans={fetchPlans} />
+          <Plans plan={plans} />
+        </View>
+      )}
+
     </ScrollView>
   );
 }

@@ -1,7 +1,7 @@
 import axios from "axios";
 import  store  from "../redux/store";
 import { logout } from "../redux/reducers/AuthSlice";
-const api ="https://interngo.onrender.com"   
+const api ="https://interngo-1.onrender.com"   
 export const axiosInstance = axios.create({
     baseURL:api,
     timeout:10000

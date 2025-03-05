@@ -1,21 +1,54 @@
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, TextInput, TouchableHighlight } from 'react-native'
 import React, { useState } from 'react'
 import { axiosInstance } from '../../utils/axiosInstance'; 
+import DateTimePicker from 'react-native-modal-datetime-picker';
+import Toast from 'react-native-toast-message';
 
 export default function CreateCard({fetchPlans}) {
-  const [isVisible,setIsVisible] = useState(false);
-  const [error,setError] = useState("");
+  const [isVisible,setIsVisible] = useState(false); 
   const [fields,setFields] = useState({
     name:'',
     description:'',
-    planDays:''
+    planDays: '',
+    startDate: '',
+    endDate:''
   });
+
+    const showToast = (state, message) => {
+      Toast.show({
+        type: state,
+        text1: "Plan Creation",
+        text2: message,
+        position: "top",
+        swipeable: true,
+        visibilityTime: 1500,
+      });
+    };
+
+  const [isDateVisible, setIsDateVisible] = useState(false);
+  const [currentField, setCurrentField] = useState('startDate');
+  const handleDateConfirm = (date) => {
+
+    
+    if (currentField == 'startDate'&&Number(fields.planDays)>0) {
+      const endDate = new Date(date);
+      endDate.setDate(new Date(date).getDate()+fields.planDays)
+      setFields({
+        ...fields,
+        endDate: endDate.toISOString().split("T")[0],
+        startDate: date.toISOString().split("T")[0],
+      });      
+    }
+    else {
+          const formattedDate = date.toISOString().split("T")[0];
+          setFields({ ...fields, [currentField]: formattedDate }); 
+    }
+    setIsDateVisible(false);
+  };
   const handleClose =()=>{
-    setIsVisible(false);
-    setError("");
+    setIsVisible(false); 
   }
-  const handleOpen =()=>{
-    setError("");
+  const handleOpen =()=>{ 
     setIsVisible(true)
   }
   const handleChange = (field, value) => {
@@ -28,74 +61,138 @@ export default function CreateCard({fetchPlans}) {
       if(fields[key].trim()!=""){
         update[key]= fields[key];
       }
-    }) 
-    
-    if(Object.keys(update).length<3){
-      setError("*Please fill all details");
+    })  
+
+    if(Object.keys(update).length<5){
+      showToast('error',"Please fill all details");
     }
-    else if(Number(update.planDays)>180||Number(pdate.planDays)<1){
-      setError("*Please Enter Days between 1 to 180");
+    else if (Number(update.planDays) > 180 || Number(update.planDays) < 1) {
+      showToast("error", "Please Enter Days between 1 to 180");
     }
-    else{ 
+    else if (((new Date(update.endDate) - new Date(update.startDate)) / (1000 * 60 * 60 * 24))<0) {
+      showToast('error','End date must be after start date')
+    }
+    else if (
+      ((new Date(update.endDate) - new Date(update.startDate)) /
+        (1000 * 60 * 60 * 24)) >
+      update.planDays
+    ) {
+      showToast("error", "End Date cannot exceed Plan days");
+    } else {
       handleSubmit(update);
     }
   }
 
+  const handleDateOpen = (field) => {
+    setCurrentField(field);
+    setIsDateVisible(true);
+  }
   const handleSubmit = async(update)=>{
     try{
       const response  = await axiosInstance.post('/api/plans/create',{
         name:update.name,
         description:update.description,
-        planDays:Number(update.planDays)
+        planDays: Number(update.planDays),
+        startDate: update.startDate,
+        endDate:update.endDate
       } );
       if(response){
         fetchPlans();
+        setIsVisible(false);
       }
     }
     catch(err){
-      console.log(err.message);
-    }
-    finally{
-      setIsVisible(false)
-    }
+      const msg = JSON.stringify(err.response.data.message) || 'Plan not created';
+      showToast('error', msg);
+    } 
   }
   return (
     <>
-    <TouchableOpacity onPress={handleOpen}>
-    <View style={styles.container}>
-      <Text style={styles.createText}><Text style={{fontWeight:'bold',fontSize:30}}>+</Text> Create Plan</Text>
-    </View>
-    </TouchableOpacity>
-    <Modal animationType='slide' transparent={true} onRequestClose={()=>setIsVisible(false)} visible={isVisible}>
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalHeading}>Create Plan</Text>
-          {error&& <Text style={{color:'red'}}>{error}</Text>}
-          <ScrollView>
-            <View style={styles.modalField}>
+      <TouchableOpacity onPress={handleOpen}>
+        <View style={styles.container}>
+          <Text style={styles.createText}>
+            <Text style={{ fontWeight: "bold", fontSize: 30 }}>+</Text> Create
+            Plan
+          </Text>
+        </View>
+      </TouchableOpacity>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setIsVisible(false)}
+        visible={isVisible}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalHeading}>Create Plan</Text>
+            <ScrollView>
+              <View style={styles.modalField}>
                 <Text style={styles.modalLabel}>Name</Text>
-                <TextInput value={fields.name} onChangeText={(text)=>handleChange('name',text)} style={styles.modalInput} placeholder='Enter name'/>
-            </View>
-            <View style={styles.modalField}>
+                <TextInput
+                  value={fields.name}
+                  onChangeText={(text) => handleChange("name", text)}
+                  style={styles.modalInput}
+                  placeholder="Enter name"
+                />
+              </View>
+              <View style={styles.modalField}>
                 <Text style={styles.modalLabel}>Description</Text>
-                <TextInput value={fields.description} onChangeText={(text)=>handleChange('description',text)} style={[styles.modalInput,{height:100,textAlignVertical:'top'}]} placeholder='Enter description'/>
-            </View>
-            <View style={styles.modalField}>
+                <TextInput
+                  value={fields.description}
+                  onChangeText={(text) => handleChange("description", text)}
+                  style={[
+                    styles.modalInput,
+                    { height: 100, textAlignVertical: "top" },
+                  ]}
+                  placeholder="Enter description"
+                />
+              </View>
+              <View style={styles.modalField}>
                 <Text style={styles.modalLabel}>Number of days</Text>
-                <TextInput value={fields.planDays} keyboardType='number-pad' onChangeText={(text)=>handleChange('planDays',text)} style={styles.modalInput} placeholder='Enter no of days'/>
-            </View>
-          </ScrollView>
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+                <TextInput
+                  value={fields.planDays}
+                  keyboardType="number-pad"
+                  onChangeText={(text) => handleChange("planDays", text)}
+                  style={styles.modalInput}
+                  placeholder="Enter no of days"
+                />
+              </View>
+              <View style={styles.modalField}>
+                <Text style={styles.modalLabel}>Start Date</Text>
+                <TouchableOpacity onPress={() => handleDateOpen("startDate")}>
+                  <Text style={styles.modalInput}>
+                    {fields.startDate || "Choose Date"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.modalField}>
+                <Text style={styles.modalLabel}>End Date</Text>
+                <TouchableOpacity onPress={() => handleDateOpen("endDate")}>
+                  <Text style={styles.modalInput}>
+                    {fields.endDate || "Choose Date"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
               <Text style={styles.saveButtonText}>Save</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
               <Text style={styles.closeButtonText}>Close</Text>
             </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </Modal>
+        <Toast />
+      </Modal>
+      <DateTimePicker
+        isVisible={isDateVisible}
+        mode="date"
+        minimumDate={new Date()}
+        onConfirm={handleDateConfirm}
+        onCancel={() => setIsDateVisible(false)}
+      />
     </>
-  )
+  );
 }
 
 const styles = StyleSheet.create({

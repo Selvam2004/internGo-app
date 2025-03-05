@@ -59,10 +59,19 @@ export default function DashBoard( ) {
 
     socket.on("notification", (data) => { 
       const dt = data.createdNotification;
-      const newNotification = {id:dt.id,message:dt.message,type:dt.type,timestamp:new Date(dt.createdAt).toLocaleString("en-US", { 
-        year: "numeric", month: "long", day: "numeric", 
-        hour: "2-digit", minute: "2-digit"
-    }),isRead:dt.isRead}
+      const newNotification = {
+        id: dt.id,
+        message: dt.message,
+        type: dt.type?.split("-")[0] + " " + dt.type?.split("-")[1],
+        timestamp: new Date(dt.createdAt).toLocaleString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        isRead: dt.isRead,
+      };
       showToast(newNotification.type,newNotification.message) 
       dispatch(addNotification(newNotification))
     });

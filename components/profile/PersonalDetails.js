@@ -305,6 +305,7 @@ export default function PersonalDetails({ user, edit ,fetchUser}) {
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     marginTop: 15,

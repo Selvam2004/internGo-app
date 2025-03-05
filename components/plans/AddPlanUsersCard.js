@@ -11,20 +11,61 @@ const ProfileCard = ({planStatus,selected,setSelected,user}) => {
     } 
   return (
     <TouchableHighlight underlayColor={"lightgray"} onPress={handleToggle}>
-    <View style={[styles.card,{backgroundColor:planStatus=='Not Present'?(selected.includes(user.id)?'lightblue':'#fff'):selected.includes(user.id)?'#ff8b72':'#fff'}]}>
-    {user.profilePhoto?<Image source={{uri:user.profilePhoto}} style={styles.profileImage} />:
-      <Image source={Profile} style={styles.profileImage} />}
-      <View style={[styles.detailsContainer,{width:"70%"}]}>
-        <View style={{flexDirection:'row',justifyContent:'space-between',alignItems:'center'}}>
-        <Text style={styles.name}>{user.name}</Text>
-        <Text style={[styles.badge,{backgroundColor:user.status=="ACTIVE"?"green":"gray"}]}>{user.status||"IDLE"}</Text>
+      <View
+        style={[
+          styles.card,
+          {
+            backgroundColor:
+              planStatus == "Not Present"
+                ? selected.includes(user.id)
+                  ? "lightblue"
+                  : "#fff"
+                : selected.includes(user.id)
+                ? "#ff8b72"
+                : "#fff",
+          },
+        ]}
+      >
+        <View style={{ justifyContent: "center", width: "30%" }}>
+          {user.profilePhoto ? (
+            <Image
+              source={{ uri: user.profilePhoto }}
+              style={styles.profileImage}
+            />
+          ) : (
+            <Image source={Profile} style={styles.profileImage} />
+          )}
         </View>
-        <Text style={[styles.detailText,{fontWeight:'bold'}]}>Employee ID: {user.employeeId||" N/A"}</Text>
-        <Text style={styles.detailText}>{user.email}</Text>
-        <Text style={styles.detailText}>{user.designation||"Designation N/A"}</Text>
-        <Text style={styles.detailText}>{user.batch || "Batch N/A"} {user.phase || "Phase N/A"}</Text>
+        <View style={[styles.detailsContainer, { width: "65%" }]}>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Text style={styles.name}>{user.name}</Text>
+            <Text
+              style={[
+                styles.badge,
+                { backgroundColor: user.status == "ACTIVE" ? "green" : "gray" },
+              ]}
+            >
+              {user.status || "IDLE"}
+            </Text>
+          </View>
+          <Text style={[styles.detailText, { fontWeight: "bold" }]}>
+            Employee ID: {user.employeeId || " N/A"}
+          </Text>
+          <Text style={styles.detailText}>{user.email}</Text>
+          <Text style={styles.detailText}>
+            {user.designation || "Designation N/A"}
+          </Text>
+          <Text style={styles.detailText}>
+            {user.batch || "Batch N/A"} {user.phase || "Phase N/A"}
+          </Text>
+        </View>
       </View>
-    </View>
     </TouchableHighlight>
   );
 };
@@ -42,6 +83,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 3,
     margin: 5,
+    justifyContent:'space-between'
   },
   header:{
     flexDirection:'row',

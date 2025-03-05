@@ -18,7 +18,7 @@ const ProfileCard = ({user}) => {
     {user.profilePhoto?<Image source={{uri:user.profilePhoto}} style={styles.profileImage} />:
       <Image source={Profile} style={styles.profileImage} />}
       </View>
-      <View style={[styles.detailsContainer,{width:"70%"}]}>
+      <View style={[styles.detailsContainer,{width:"65%"}]}>
         <View style={{flexDirection:'row',justifyContent:'space-between',alignItems:'center'}}>
         <Text style={styles.name}>{user.name}</Text>
         <Text style={[styles.badge,{backgroundColor:user.status=="ACTIVE"?"green":"gray"}]}>{user.status||"IDLE"}</Text>
@@ -36,48 +36,49 @@ const ProfileCard = ({user}) => {
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: 15,
-    marginHorizontal:10,
+    marginHorizontal: 10,
     borderRadius: 10,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     elevation: 5,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
     margin: 5,
+    justifyContent: "space-between",
   },
-  header:{
-    flexDirection:'row',
-    justifyContent:'space-between'
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   profileImage: {
     width: 80,
     height: 80,
-    borderRadius: 50,  
-    marginRight: 20, 
+    borderRadius: 50,
+    marginRight: 20,
   },
-  badge:{ 
-    fontWeight: 'bold',
-    fontSize: 8, 
-    color:'white',
-    borderRadius:10,
-    padding:5,
-    flex:12,
-    textAlign:'center'
+  badge: {
+    fontWeight: "bold",
+    fontSize: 8,
+    color: "white",
+    borderRadius: 10,
+    padding: 5,
+    flex: 12,
+    textAlign: "center",
   },
   detailsContainer: {
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   name: {
-    flex:26,
+    flex: 26,
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   detailText: {
     fontSize: 12,
-    color: '#555',
+    color: "#555",
   },
 });
 

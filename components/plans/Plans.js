@@ -23,7 +23,7 @@ export default function Plans({ plan }) {
   }, [plan]);
 
   const handleNavigate = (id) => {
-    navigation.navigate("Plan Details", { id });
+    navigation.navigate("Plan Details", { plan:plan.filter(p=>p.id==id)[0] });
   };
 
   const handleDelete = (id) => {
@@ -66,19 +66,22 @@ export default function Plans({ plan }) {
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>📚 Training Plans</Text>
-      
-     {Object.keys(message).length>0&& <View style={[styles.resp,{backgroundColor:message.color||"skyblue"}]}>
-      <Text>Plan deleted successfully</Text>
-      <TouchableOpacity onPress={handleClose}>
-      <Icon name="close" size={20}  />
-      </TouchableOpacity>
-      </View>}
+
+      {Object.keys(message).length > 0 && (
+        <View
+          style={[styles.resp, { backgroundColor: message.color || "skyblue" }]}
+        >
+          <Text>Plan deleted successfully</Text>
+          <TouchableOpacity onPress={handleClose}>
+            <Icon name="close" size={20} />
+          </TouchableOpacity>
+        </View>
+      )}
 
       <SwipeListView
         data={plans}
         ref={listViewRef}
         keyExtractor={(item) => item.id.toString()}
-
         renderItem={({ item }) => (
           <TouchableHighlight
             underlayColor={"lightgray"}
@@ -90,7 +93,17 @@ export default function Plans({ plan }) {
               <Text style={styles.cardTitle}>{item.name}</Text>
               <Text style={styles.cardDays}>
                 🗓️ Total Days:{" "}
-                <Text style={styles.boldText}>{item.planDays}</Text>
+                <Text style={styles.boldText}>
+                  {item.planDays} 
+                </Text>
+              </Text>
+              <Text style={styles.cardDays}>
+                Duration:{" "}
+                <Text style={styles.boldText}> 
+                  {item.startDate?.split("T")[0] +
+                    "  to  " +
+                    item.startDate?.split("T")[0]} 
+                </Text>
               </Text>
               <Text
                 style={styles.cardDescription}
@@ -102,7 +115,6 @@ export default function Plans({ plan }) {
             </View>
           </TouchableHighlight>
         )}
-
         renderHiddenItem={({ item }) => (
           <TouchableOpacity
             style={styles.deleteBox}
@@ -111,9 +123,8 @@ export default function Plans({ plan }) {
             <Icon name="delete" size={24} color="white" />
           </TouchableOpacity>
         )}
-        
-        rightOpenValue={-90} 
-        scrollEnabled={false} 
+        rightOpenValue={-90}
+        scrollEnabled={false}
         disableRightSwipe={true}
       />
     </View>
@@ -122,7 +133,7 @@ export default function Plans({ plan }) {
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: 20, 
+    marginVertical: 30, 
   },
   heading: {
     fontSize: 24,
@@ -171,7 +182,7 @@ const styles = StyleSheet.create({
     width: "90%",
     position:'absolute',
     right:0,
-    height: "80%", 
+    height: "90%", 
     paddingRight:28,
     borderRadius: 12,  
     marginTop:3

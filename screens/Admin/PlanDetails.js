@@ -14,7 +14,8 @@ import { axiosInstance } from "../../utils/axiosInstance";
 import Milestones from "../../components/plans/Milestones";
 
 export default function PlanDetails({ route }) {
-  const { id } = route.params;
+  const { plan } = route.params;
+  const id = plan.id
   const [milestones, setMilestones] = useState([]);
   const addMilestoneRef = useRef(null);
   const [loading,setLoading] = useState(false);
@@ -49,7 +50,7 @@ export default function PlanDetails({ route }) {
       error?<ErrorPage onRetry={fetchMilestone}/>: 
     <View style={styles.container}>
       <ScrollView style={{padding:5}} showsVerticalScrollIndicator={false} >
-      <EditPlan id={id} />
+      <EditPlan plan={plan} />
       <TouchableOpacity onPress={() => addMilestoneRef.current?.openCard()}>
       <View style={styles.addButton}>
         <Icon name="add" size={24} color="#fff" />

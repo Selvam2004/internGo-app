@@ -1,127 +1,189 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Modal, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  Modal,
+  ScrollView
+} from "react-native";
 import React, { useEffect, useState } from "react";
-import { axiosInstance } from "../../utils/axiosInstance";
-import ErrorPage from "../../screens/User/Error";
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { axiosInstance } from "../../utils/axiosInstance"; 
+import Icon from "react-native-vector-icons/MaterialIcons";
+import DateTimePicker from "react-native-modal-datetime-picker";
+import Toast from "react-native-toast-message";
 
-
-export default function EditPlan({ id }) { 
+export default function EditPlan({ plan }) {
   const [isModalVisible, setModalVisible] = useState(false);
-  const [error, setError] = useState("");
-  const [valid, setValid] = useState("");
+  const [isDateVisible, setIsDateVisible] = useState(false); 
+
   const [planDetails, setPlanDetails] = useState({});
+  const [currentField, setCurrentField] = useState("startDate");
+
+  const showToast = (state, message) => {
+    Toast.show({
+      type: state,
+      text1: "Plan Edit",
+      text2: message,
+      position: "top",
+      swipeable: true,
+      visibilityTime: 1500,
+    });
+  };
+
+  const handleDateConfirm = (date) => {
+    if (currentField == "startDate" && Number(fields.planDays) > 0) {
+      const endDate = new Date(date);
+      endDate.setDate(new Date(date).getDate() + fields.planDays);
+      setFields({
+        ...fields,
+        endDate: endDate.toISOString().split("T")[0],
+        startDate: date.toISOString().split("T")[0],
+      });
+    } else {
+      const formattedDate = date.toISOString().split("T")[0];
+      setFields({ ...fields, [currentField]: formattedDate });
+    }
+    setIsDateVisible(false);
+  };
+  const handleDateOpen = (field) => {
+    setCurrentField(field);
+    setIsDateVisible(true);
+  };
 
   const [fields, setFields] = useState({});
-
-  const fetchDetails = async () => {
-    try { 
-      const response = await axiosInstance.get(`/api/plans/${id}`);
-      if (response) { 
-        setPlanDetails(response.data?.data);
-        setFields(response.data?.data); 
-      }
-    } catch (err) { 
-      setError("something went wrong");
-    }
-  };
-  
-
   useEffect(() => {
-    fetchDetails();
-  }, []);
+    setPlanDetails({
+      ...plan,
+      startDate: plan.startDate?.split("T")[0],
+      endDate: plan.endDate?.split("T")[0],
+    });
+    setFields({
+      ...plan,
+      startDate: plan.startDate?.split("T")[0],
+      endDate: plan.endDate?.split("T")[0],
+    });
+  }, [plan]);
 
-  const handleChange  =(key,value)=>{
-    setFields({...fields,[key]:value});
-  }
-  const handleEdit =()=>{
+  const handleChange = (key, value) => {
+    setFields({ ...fields, [key]: value });
+  };
+  const handleEdit = () => {
     setModalVisible(true);
-    setValid("");
-  }
+  };
   const handleSave = () => {
-    let isValid = true;  
-    if(Number(fields.planDays)>180||Number(fields.planDays)<1){
-      setValid("*Please Enter Days between 1 to 180");
+    let isValid = true; 
+    
+    if (Number(fields.planDays) > 180 || Number(fields.planDays) < 1) {
+      showToast("error", "*Please Enter Days between 1 to 180");
+      return;
+    } else if (
+      ((new Date(fields.endDate) - new Date(fields.startDate)) /
+        (1000 * 60 * 60 * 24)) <
+      0
+    ) {
+      showToast("error", "End date must be after start date");
+      return;
+    } else if (
+      (new Date(fields.endDate) - new Date(fields.startDate)) /
+        (1000 * 60 * 60 * 24) >
+      fields.planDays
+    ) {
+      showToast("error", "End Date cannot exceed Plan days");
       return;
     }
-    Object.keys(fields).forEach((key) => {
-        if(key!='count'){
-      if (!fields[key] || (typeof fields[key] === "string" && fields[key].trim() === "")) { 
-        isValid = false;
-      }
-    }
-    }); 
-    if (isValid) {
-        setValid("");
-        handleSubmit();
-    }
-    else{
-        setValid("Enter all details"); 
-    }
-   
-  };
-  
-  const handleClose = ()=>{
-    setModalVisible(false)
-  }
-  
-  const handleSubmit = async()=>{
-    try{
-        setValid("");
-        const response = await axiosInstance.patch(`/api/plans/${id}/update`,{
-            name:fields.name,
-            planDays:Number(fields.planDays),
-            description:fields.description
-        })
-        if(response){
-            setPlanDetails(fields);
+    Object.keys(fields).forEach((key) => { 
+        if (
+          !fields[key] ||
+          (typeof fields[key] === "string" && fields[key].trim() === "")
+        ) {
+          isValid = false;
         }
+      
+    });
+    if (isValid) {
+      handleSubmit();
+    } else {
+      showToast("error", "Enter all details");
     }
-    catch(err){
-        console.log(err);        
-    }
-    finally{
+  };
+
+  const handleClose = () => {
+    setModalVisible(false);
+  };
+
+  const handleSubmit = async () => {
+    try { 
+      const response = await axiosInstance.patch(
+        `/api/plans/${plan.id}/update`,
+        {
+          name: fields.name,
+          planDays: Number(fields.planDays),
+          description: fields.description,
+          startDate: fields.startDate,
+          endDate: fields.endDate
+        }
+      );
+      if (response) { 
+        setPlanDetails(fields);
         setModalVisible(false);
+      }
+    } catch (err) {
+      const msg =
+      JSON.stringify(err.response.data.message) || "Plan details not updated";
+      showToast("error", msg);
     }
-  }
+  };
   return (
     <>
-    {!!error?<ErrorPage onRetry={fetchDetails}/>:
-    <View style={styles.planHeader}>
-        
-      <View style={[styles.planDetailItem,{alignItems:'flex-end',marginBottom:7}]}>
+      <View style={styles.planHeader}>
+        <View
+          style={[
+            styles.planDetailItem,
+            { alignItems: "flex-end", marginBottom: 7 },
+          ]}
+        >
+          <View style={{ flexDirection: "row", flex: 6 }}>
+            <Text style={styles.planDetailLabel}>Plan Name:</Text>
+            <Text style={{ flex: 4 }}>
+              {planDetails.name || "Not Available"}
+            </Text>
+          </View>
 
-        <View style={{flexDirection:'row',flex:6}}>
-        <Text style={styles.planDetailLabel}>Plan Name:</Text>
-        <Text  style={{flex:4}}>{planDetails.name||"Not Available"}</Text>
+          <TouchableOpacity
+            style={[styles.editButton, { flexDirection: "row", flex: 1 }]}
+            onPress={handleEdit}
+          >
+            <Icon name="edit" style={styles.editIcon} size={18} color="white" />
+            <Text style={styles.editText}>Edit</Text>
+          </TouchableOpacity>
         </View>
 
-        <TouchableOpacity
-          style={[
-            styles.editButton,
-            { flexDirection: 'row',flex:1 },
-          ]}
-          onPress={handleEdit}
-        >
-          <Icon name="edit" style={styles.editIcon} size={18} color="white" />
-          <Text style={styles.editText}>Edit</Text>
-        </TouchableOpacity>
-
-       </View>
-
-      <View style={styles.planDetailItem}>
-        <Text style={styles.planDetailLabel}>Total Days:</Text>
-        <Text style={styles.planDetailValue}>{planDetails.planDays || "0"}</Text>
+        <View style={styles.planDetailItem}>
+          <Text style={styles.planDetailLabel}>Total Days:</Text>
+          <Text style={styles.planDetailValue}>
+            {planDetails.planDays || "0"}
+          </Text>
+        </View>
+        <View style={styles.planDetailItem}>
+          <Text style={styles.planDetailLabel}>Total Users:</Text>
+          <Text style={styles.planDetailValue}>{planDetails.count || "0"}</Text>
+        </View>
+        <View style={styles.planDetailItem}>
+          <Text style={styles.planDetailLabel}>Duration:</Text>
+          <Text style={styles.planDetailValue}>
+            {planDetails.startDate?.split("T")[0] +
+              "  to  " +
+              planDetails.endDate?.split("T")[0]}
+          </Text>
+        </View>
+        <View style={styles.planDetailItem}>
+          <Text style={styles.planDetailLabel}>Description:</Text>
+          <Text style={styles.planDetailValue}>
+            {planDetails.description || "Not Available"}
+          </Text>
+        </View>
       </View>
-      <View style={styles.planDetailItem}>
-        <Text style={styles.planDetailLabel}>Total Users:</Text>
-        <Text style={styles.planDetailValue}>{planDetails.count ||"0"}</Text>
-      </View>
-      <View style={styles.planDetailItem}>
-        <Text style={styles.planDetailLabel}>Description:</Text>
-        <Text style={styles.planDetailValue}>{planDetails.description||"Not Available"}</Text>
-      </View>
-    </View>
-    }
       <Modal
         animationType="slide"
         transparent={true}
@@ -131,34 +193,48 @@ export default function EditPlan({ id }) {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalHeading}>Edit Plan Details</Text>
-            <Text style={{display:valid?'':'none',color:'red'}}>{valid}</Text>
-            <ScrollView>  
+            <ScrollView>
               <View style={styles.modalField}>
                 <Text style={styles.modalLabel}>Plan Name</Text>
                 <TextInput
-                  style={styles.modalInput} 
+                  style={styles.modalInput}
                   value={fields.name}
-                  onChangeText={(text)=>handleChange('name',text)}
-                />                
-              </View>  
+                  onChangeText={(text) => handleChange("name", text)}
+                />
+              </View>
               <View style={styles.modalField}>
                 <Text style={styles.modalLabel}>Total Days</Text>
                 <TextInput
-                  style={styles.modalInput} 
-                  value={fields.planDays?.toString()} 
-                  onChangeText={(text)=>handleChange('planDays',text)}
+                  style={styles.modalInput}
+                  value={fields.planDays?.toString()}
+                  onChangeText={(text) => handleChange("planDays", text)}
                   keyboardType="number-pad"
-                />                
-              </View>  
+                />
+              </View>
               <View style={styles.modalField}>
                 <Text style={styles.modalLabel}>Description</Text>
                 <TextInput
-                  style={styles.modalInput} 
+                  style={styles.modalInput}
                   value={fields.description}
-                  onChangeText={(text)=>handleChange('description',text)}
-                />                
-              </View>  
-              
+                  onChangeText={(text) => handleChange("description", text)}
+                />
+              </View>
+              <View style={styles.modalField}>
+                <Text style={styles.modalLabel}>Start Date</Text>
+                <TouchableOpacity onPress={() => handleDateOpen("startDate")}>
+                  <Text style={styles.modalInput}>
+                    {fields.startDate || "Choose Date"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.modalField}>
+                <Text style={styles.modalLabel}>End Date</Text>
+                <TouchableOpacity onPress={() => handleDateOpen("endDate")}>
+                  <Text style={styles.modalInput}>
+                    {fields.endDate || "Choose Date"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </ScrollView>
             <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
               <Text style={styles.saveButtonText}>Save</Text>
@@ -168,7 +244,15 @@ export default function EditPlan({ id }) {
             </TouchableOpacity>
           </View>
         </View>
+        <Toast />
       </Modal>
+      <DateTimePicker
+        isVisible={isDateVisible}
+        mode="date"
+        minimumDate={new Date()}
+        onConfirm={handleDateConfirm}
+        onCancel={() => setIsDateVisible(false)}
+      />
     </>
   );
 }
@@ -184,41 +268,41 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 3,
   },
-   planDetailItem: {
-     flexDirection: "row", 
-     justifyContent:'space-between',
-     marginBottom: 10
-     },
-  planDetailLabel: { 
-    fontWeight: "bold", 
-    width: 100 
-},
-  planDetailValue: { 
-    flex: 1
- },
- editButton: {
+  planDetailItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  planDetailLabel: {
+    fontWeight: "bold",
+    width: 100,
+  },
+  planDetailValue: {
+    flex: 1,
+  },
+  editButton: {
     paddingVertical: 4,
     paddingHorizontal: 12,
-    backgroundColor: '#1E90FF',
-    borderRadius: 5, 
+    backgroundColor: "#1E90FF",
+    borderRadius: 5,
   },
   editText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContent: {
-    backgroundColor: '#fff',
-    width: '90%',
+    backgroundColor: "#fff",
+    width: "90%",
     borderRadius: 8,
     padding: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOpacity: 0.2,
     shadowRadius: 5,
     shadowOffset: { width: 0, height: 2 },
@@ -226,56 +310,56 @@ const styles = StyleSheet.create({
   },
   modalHeading: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 20,
-    color: '#333',
+    color: "#333",
   },
   modalField: {
     marginBottom: 16,
   },
   modalLabel: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#555',
+    fontWeight: "600",
+    color: "#555",
     marginBottom: 6,
   },
   modalInput: {
     borderWidth: 1,
-    borderColor: 'rgb(217, 217, 217)',
+    borderColor: "rgb(217, 217, 217)",
     borderRadius: 5,
-    padding:10,
+    padding: 10,
     fontSize: 14,
-    color: '#333',
+    color: "#333",
   },
   picker: {
     borderWidth: 1,
-    borderColor: 'rgb(217, 217, 217)',
+    borderColor: "rgb(217, 217, 217)",
     borderRadius: 5,
     fontSize: 14,
-    color: '#333',
+    color: "#333",
   },
   saveButton: {
     marginTop: 20,
     paddingVertical: 12,
-    backgroundColor: '#1E90FF',
+    backgroundColor: "#1E90FF",
     borderRadius: 5,
-    alignItems: 'center',
+    alignItems: "center",
   },
   saveButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   closeButton: {
     marginTop: 20,
     paddingVertical: 12,
-    backgroundColor: '#ff4d4d',
+    backgroundColor: "#ff4d4d",
     borderRadius: 5,
-    alignItems: 'center',
+    alignItems: "center",
   },
   closeButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });
