@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "460293020747",
+    "project_id": "interngo-ad4f1",
+    "storage_bucket": "interngo-ad4f1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:460293020747:android:7d1357fb0c29f485cd41ce",
+        "android_client_info": {
+          "package_name": "com.selvam2004.internGo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB11ibQ4qZQnotIqontJmFGMPj3rfvhoMA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

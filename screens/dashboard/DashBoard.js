@@ -1,5 +1,14 @@
-import { Image ,View,Text, StyleSheet, TouchableOpacity} from 'react-native'
+import {
+  Image,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  PermissionsAndroid,
+  Platform,
+} from "react-native";
 import React, { useEffect, useState } from 'react'
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import 'react-native-gesture-handler'
 import { useDispatch ,useSelector} from 'react-redux'
 import { logout } from '../../redux/reducers/AuthSlice';
@@ -35,6 +44,9 @@ import MentorHome from '../Mentor/MentorHome';
 import AdminHome from '../Admin/AdminHome';
 import Help from '../User/Help';
 import PendingTickets from '../Admin/PendingTickets';
+import messaging from "@react-native-firebase/messaging";
+import PushNotification from "react-native-push-notification";
+
  
 
 export default function DashBoard( ) {
@@ -118,7 +130,11 @@ export default function DashBoard( ) {
   const handleNotification = ()=>{  
     navigation.navigate('Notifications')
   }
- 
+   useEffect(() => {
+     createNotificationChannel();  
+     requestUserPermission();
+     getFcmToken();  
+   }, []); 
 
   const tabs = [
     {
@@ -373,3 +389,54 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 })
+
+
+const createNotificationChannel = () => {
+  PushNotification.createChannel(
+    {
+      channelId: "fcm_default_channel", 
+      channelName: "Default Channel", 
+      importance: 4, 
+      vibrate: true,
+      soundName: "interngo.mp3", 
+      playSound: true,
+    },
+    (created) => console.log(`Notification channel created: ${created}`) 
+  );
+};
+
+
+  const requestUserPermission = async () => {
+    if (Platform.OS === "android") {
+      if (Platform.Version >= 33) { 
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+        );  
+      } else {
+        await messaging().requestPermission(); 
+      }
+    }
+  };
+
+
+const getFcmToken = async () => {
+  try {
+    const storedToken = await AsyncStorage.getItem("fcmToken"); 
+    if (storedToken) { 
+      return;
+    }
+
+    const token = await messaging().getToken();
+    console.log('new token : ',token);
+    
+    if (token) { 
+      await AsyncStorage.setItem("fcmToken", token); 
+    }
+  } catch (error) {
+    console.error("Error getting FCM Token:", error);
+  }
+};
+
+    messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+      //console.log("Message handled in the background!", remoteMessage); 
+    }); 

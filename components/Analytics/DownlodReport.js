@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react' 
 import  Icon  from 'react-native-vector-icons/Entypo';
 import { useSelector } from 'react-redux';

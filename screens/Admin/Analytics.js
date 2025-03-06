@@ -9,14 +9,17 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import DownloadIcon from "react-native-vector-icons/Entypo";
 import ProfileCard from "../../components/Analytics/ProfileCard";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import ErrorPage from "../User/Error";
 import { axiosInstance } from "../../utils/axiosInstance";
 import { useSelector } from "react-redux";
+import DownloadBatchReport from "../../components/Analytics/DownloadBatchReport";
 export default function Analytics() {
   const [modalVisible, setModalVisible] = useState(false);
+  const [downloadModalVisible, setDownloadModalVisible] = useState(false);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -46,6 +49,10 @@ export default function Analytics() {
   const status = filters?.statuses?.filter((s) => s) || [];
   const zone = ["GREEN ZONE", "YELLOW ZONE", "RED ZONE"];
   const isFirstLoad = useRef(true);
+
+  const handleDownloadModal = () => {
+    setDownloadModalVisible(true)
+  }
 
   useEffect(() => {
     setLoading(true);
@@ -174,7 +181,25 @@ export default function Analytics() {
         </View>
       ) : (
         <View>
-          <Text style={styles.header}>Analytics</Text>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginTop: 20,
+            }}
+          >
+            <Text style={styles.header}>Analytics</Text>
+            <TouchableOpacity onPress={handleDownloadModal}>
+              <DownloadIcon
+                style={{ marginEnd: 30 }}
+                name="download"
+                color={"#007BFF"}
+                size={18}
+              />
+            </TouchableOpacity>
+          </View>
+
           <View style={styles.container}>
             <View style={styles.searchContainer}>
               <Icon
@@ -190,7 +215,6 @@ export default function Analytics() {
                 onChangeText={handleSearch}
               />
             </View>
-
             <TouchableOpacity
               style={styles.filterBadge}
               onPress={() => setModalVisible(true)}
@@ -386,6 +410,9 @@ export default function Analytics() {
           </View>
         </View>
       </Modal>
+
+      <DownloadBatchReport years={years} batches={batches} isVisible={downloadModalVisible} setIsVisible={setDownloadModalVisible} />
+
     </ScrollView>
   );
 }
@@ -398,8 +425,7 @@ const styles = StyleSheet.create({
   header: {
     fontWeight: "bold",
     fontSize: 24,
-    paddingHorizontal: 15,
-    marginTop: 10,
+    paddingHorizontal: 15, 
   },
   searchContainer: {
     flexDirection: "row",
