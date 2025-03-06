@@ -7,7 +7,7 @@ import {
   PermissionsAndroid,
   Platform,
 } from "react-native";
-import React, { useEffect, useState } from 'react'
+import React, { useEffect  } from 'react'
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import 'react-native-gesture-handler'
 import { useDispatch ,useSelector} from 'react-redux'
@@ -34,7 +34,7 @@ import { axiosInstance } from '../../utils/axiosInstance';
 import ViewDailyUpdates from '../Admin/ViewDailyUpdates';
 import { useNavigation } from '@react-navigation/native';
 import socket from '../../utils/socket';
-import { addNotification, setNotifications,markAsRead, setAnnouncement, addAnnouncement, fetchNotifications, fetchAnnouncements } from '../../redux/reducers/NotificationSlice';
+import { addNotification,  addAnnouncement, fetchNotifications, fetchAnnouncements } from '../../redux/reducers/NotificationSlice';
 import AddUsers from '../Admin/AddUsers'; 
 import Toast from 'react-native-toast-message';
 import Analytics from '../Admin/Analytics';
@@ -126,15 +126,37 @@ export default function DashBoard( ) {
     if (role == 'Admins') {      
       dispatch(fetchFilters());
     }
-  },[])
+  }, [])
+  
   const handleNotification = ()=>{  
     navigation.navigate('Notifications')
   }
+
    useEffect(() => {
      createNotificationChannel();  
      requestUserPermission();
      getFcmToken();  
    }, []); 
+  
+  const getFcmToken = async () => {
+    try {
+      const storedToken = await AsyncStorage.getItem("fcmToken");
+      if (storedToken) {
+        return;
+      }
+
+      const token = await messaging().getToken();
+      if (token) {  
+        await axiosInstance.post(`/api/notifications/registerFCM`, {
+          userId: id,
+          fcmToken:token
+        })
+        await AsyncStorage.setItem("fcmToken", token);
+      }
+    } catch (error) {
+      console.error("Error getting FCM Token:", error);
+    }
+  };
 
   const tabs = [
     {
@@ -400,8 +422,7 @@ const createNotificationChannel = () => {
       vibrate: true,
       soundName: "interngo.mp3", 
       playSound: true,
-    },
-    (created) => console.log(`Notification channel created: ${created}`) 
+    } 
   );
 };
 
@@ -419,23 +440,7 @@ const createNotificationChannel = () => {
   };
 
 
-const getFcmToken = async () => {
-  try {
-    const storedToken = await AsyncStorage.getItem("fcmToken"); 
-    if (storedToken) { 
-      return;
-    }
 
-    const token = await messaging().getToken();
-    console.log('new token : ',token);
-    
-    if (token) { 
-      await AsyncStorage.setItem("fcmToken", token); 
-    }
-  } catch (error) {
-    console.error("Error getting FCM Token:", error);
-  }
-};
 
     messaging().setBackgroundMessageHandler(async (remoteMessage) => {
       //console.log("Message handled in the background!", remoteMessage); 
