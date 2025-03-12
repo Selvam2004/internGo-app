@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome5';
@@ -7,7 +7,12 @@ import { axiosInstance } from '../../utils/axiosInstance';
 
 export default function MentorHome() { 
   const { name ,userId} = useSelector((state) => state.auth.data?.data); 
-  const announcement = useSelector(state=>state.notifications?.announcement)||[]
+  const announcement = useSelector(state => state.notifications?.announcement) || []
+      const [refreshing, setRefreshing] = useState(false);
+      const handleRefresh  = async()=>{
+        setRefreshing(true);
+        fetchHome();
+      }
   const [interactions,setInteractions ] = useState({
     interactionsTaken:0,
     interactionsPending:0,
@@ -17,21 +22,24 @@ export default function MentorHome() {
     fetchHome();
   },[])
   const fetchHome = async()=>{
-    try{
-      const response = await axiosInstance.get(`api/users/${userId}/interactionCount`);
-      const data = response.data?.data;   
+    try {
+      const response = await axiosInstance.get(
+        `api/users/${userId}/interactionCount`
+      );
+      const data = response.data?.data;
       setInteractions({
-        interactionsTaken:data?.interactionTaken||0,
-        interactionsPending:data?.interactionPending||0,
-        feedbackPending:data?.interactionFeedbackPending||0
-      })
-    }
-    catch(err){
-      console.log(err);      
+        interactionsTaken: data?.interactionTaken || 0,
+        interactionsPending: data?.interactionPending || 0,
+        feedbackPending: data?.interactionFeedbackPending || 0,
+      });
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setRefreshing(false);
     }
   }
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />} style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.content}> 
         <View>
           <Text style={styles.welcomeText}>Welcome {name}</Text>

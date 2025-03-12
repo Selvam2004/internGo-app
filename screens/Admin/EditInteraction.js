@@ -1,12 +1,11 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Modal, ScrollView, FlatList, ActivityIndicator } from 'react-native'
-import React, { useCallback, useEffect, useRef, useState } from 'react' 
+import React, {   useEffect, useRef, useState } from 'react' 
 import ErrorPage from '../../components/error/Error'; 
 import Icon from "react-native-vector-icons/MaterialIcons";
 import InteractionEditCard from '../../components/interactions/InteractionEditCard';
 import DateTimePicker from 'react-native-modal-datetime-picker'
 import { axiosInstance } from '../../utils/axiosInstance';
-import { useSelector } from 'react-redux';
-import { useFocusEffect } from '@react-navigation/native';
+import { useSelector } from 'react-redux'; 
 
 
 export default function Interactions() { 

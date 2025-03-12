@@ -19,7 +19,7 @@ export default function TaskTable({route}) {
     const [page, setPage] = useState({
       total: 0,
       current: 1,
-      limit: 10,
+      limit: 5,
     });
     const [search, setSearch] = useState(""); 
     const [dailyTask, setDailyTask] = useState([]); 
@@ -117,11 +117,10 @@ export default function TaskTable({route}) {
         setLoading(false);
         setModalVisible(false)
       }
-    }
-    useEffect(()=>{ 
-      fetchDailyTask()
-    },[])  
-
+    } 
+  useEffect(()=>{    
+    fetchDailyTask();
+  },[page.current])
   return (
     <ScrollView  style={styles.container}>
       {error ? (

@@ -56,8 +56,20 @@ export default function DashBoard( ) {
   const role= useSelector(state=>state.auth.data?.data?.role);  
   const permission = datas || null;
   const navigation = useNavigation(); 
-  const handleLogOut = ()=>{
-    dispatch(logout());
+  const handleLogOut = async () => { 
+    try {
+      const token = await AsyncStorage.getItem('fcmToken');   
+      const uid = id
+      dispatch(logout()); 
+      await axiosInstance.post(`/api/notifications/deleteFCM`, { 
+          userId: uid,
+          fcmToken: token,        
+      });   
+      await AsyncStorage.removeItem("fcmToken");
+    }
+    catch (err) {
+      console.log(err);      
+    }
   }
   const Drawer = createDrawerNavigator()
   const badgeCount = useSelector(state => state.notifications?.badge) || 0;
@@ -145,7 +157,7 @@ export default function DashBoard( ) {
         return;
       }
 
-      const token = await messaging().getToken();
+      const token = await messaging().getToken(); 
       if (token) {  
         await axiosInstance.post(`/api/notifications/registerFCM`, {
           userId: id,
@@ -328,7 +340,6 @@ export default function DashBoard( ) {
           
         )}
       </TouchableOpacity> 
-      
     </View>
     )
   }}  

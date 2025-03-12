@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { axiosInstance } from '../../utils/axiosInstance';
@@ -12,7 +12,11 @@ export default function InternHome() {
   const announcement = useSelector(state=>state.notifications?.announcement)||[]
   const { name, userId } = useSelector((state) => state.auth.data?.data); 
   const [zone,setZone]=useState('');
-
+      const [refreshing, setRefreshing] = useState(false);
+      const handleRefresh  = async()=>{
+        setRefreshing(true);
+        fetchHome();
+      }
   useEffect(() => {
     fetchHome();
   }, [userId]);
@@ -20,21 +24,23 @@ export default function InternHome() {
   const fetchHome = async () => {
     try {
       const response = await axiosInstance.get(`/api/users/training/${userId}`);
-      const data = response.data?.data?.milestone; 
-      const zn = response.data?.data?.zone; 
+      const data = response.data?.data?.milestone;
+      const zn = response.data?.data?.zone;
       setZone(zn);
       setMentorDetails({
-        mentorName:data?.mentorName,
-        currentPlans:data?.name,
-        daysAllotted:data?.milestoneDays
-      })
+        mentorName: data?.mentorName,
+        currentPlans: data?.name,
+        daysAllotted: data?.milestoneDays,
+      });
     } catch (err) {
       console.log(err);
+    } finally {
+      setRefreshing(false);
     }
   }; 
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{flexGrow:1,justifyContent:'space-between'}} showsVerticalScrollIndicator={false}>
+    <ScrollView    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />} style={styles.container} contentContainerStyle={{flexGrow:1,justifyContent:'space-between'}} showsVerticalScrollIndicator={false}>
       <View style={styles.content}> 
         <View>
           <Text style={styles.welcomeText}>Welcome {name}</Text>

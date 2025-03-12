@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome5';
@@ -6,7 +6,12 @@ import { axiosInstance } from '../../utils/axiosInstance';
 
 export default function AdminHome() { 
   const { name  } = useSelector((state) => state.auth.data?.data); 
-  const announcement = useSelector(state=>state.notifications?.announcement)||[]
+  const announcement = useSelector(state => state.notifications?.announcement) || []
+    const [refreshing, setRefreshing] = useState(false);
+    const handleRefresh  = async()=>{
+      setRefreshing(true);
+      fetchHome();
+    }
   const [users,setUsers]=useState({
     total:0,
     active:0,
@@ -31,9 +36,13 @@ export default function AdminHome() {
     catch(err){
       console.log(err);      
     }
+    finally {
+      setRefreshing(false)
+    }
   }
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+     style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.content}> 
         <View>
           <Text style={styles.welcomeText}>Welcome {name}</Text>
