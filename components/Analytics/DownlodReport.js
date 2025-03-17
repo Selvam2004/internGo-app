@@ -12,7 +12,7 @@ export default function DownlodReport({showToast,name,batch,id}) {
         try{
           setLoading(true);
           showToast('success','Downloading the performance analysis Report...')
-          const url =  `https://interngo.onrender.com/api/feedbacks/${id}/download?token=${token}`
+          const url = `https://interngo.in/api/api/feedbacks/${id}/download?token=${token}`;
           const fileName = `Intern_${name}-${batch}.pdf`;
           const fileUri = `${FileSystem.documentDirectory}${fileName}`;
           const { uri } = await FileSystem.downloadAsync(url, fileUri);

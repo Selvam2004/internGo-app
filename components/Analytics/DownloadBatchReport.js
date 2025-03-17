@@ -26,7 +26,7 @@ export default function DownloadBatchReport({ batches,years,isVisible, setIsVisi
         try {
             showToast("success", "Download started...");  
             setDisabled(true);
-      const url = `https://interngo-1.onrender.com/api/feedbacks/download?token=${token}&batch=${selectedBatch}&year=${selectedYear}`;
+      const url = `https://interngo.in/api/api/feedbacks/download?token=${token}&batch=${selectedBatch}&year=${selectedYear}`;
             const fileName = `${selectedBatch}_${selectedYear}_Report.xlsx`;
             const fileUri = `${FileSystem.documentDirectory}${fileName}`;       
             const { uri } = await FileSystem.downloadAsync(url, fileUri); 

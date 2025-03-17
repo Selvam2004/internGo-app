@@ -5,10 +5,10 @@ import { LineChart } from "react-native-gifted-charts";
 const screenWidth = Dimensions.get("window").width;
 
 const PerformanceChart = ({ data }) => {   
-  const formattedData = Object.entries(data).map(([key, value], index) => ({
-    value: Math.max(1, Math.min(10, Number(value) * 2)),  
-    label: key, 
-  }));
+  const formattedData = data.map((fb) => ({
+    value: Math.max(1, Math.min(10, Number(Object.values(fb)[0]) * 2)),  
+    label: Object.keys(fb)[0], 
+  })); 
 
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false}>

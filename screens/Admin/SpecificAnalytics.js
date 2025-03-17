@@ -17,7 +17,7 @@ export default function SpecificAnalytics({route}) {
   const user = route.params.user;   
   const id = user.id; 
   
-  const [feedback, setFeedback] = useState({});
+  const [feedback, setFeedback] = useState([]);
   const [interaction, setInteraction] = useState([]);  
   const [loading,setLoading] = useState(false);
   const [error,setError] = useState(false); 
@@ -32,12 +32,12 @@ export default function SpecificAnalytics({route}) {
       const response = await axiosInstance.get(`api/feedbacks/intern/${id}`); 
       if(response){
         const data = response?.data?.data; 
-        const dt ={};
+        const dt = [];         
         data.forEach(fb => {
-            dt[fb.interaction.name]=fb.avg_rating
+          dt.push({ [fb.interaction.name] : fb.avg_rating }) 
         });          
         setInteraction(data)
-        setFeedback(dt)
+        setFeedback(dt)        
       }
     }
     catch(err){
@@ -59,8 +59,10 @@ export default function SpecificAnalytics({route}) {
     });
   };
   useEffect(()=>{
-    const fb=Object.values(feedback)||[];
-    let rating=fb?.reduce((acc,val)=>acc+val,0); 
+    const fb = feedback.map(f => {
+      return Object.values(f)[0]
+    })||[]; 
+    let rating = fb?.reduce((acc, val) => acc + val, 0); 
     setAvg(rating/fb.length);
     
   },[feedback])

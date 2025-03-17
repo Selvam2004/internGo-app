@@ -3,7 +3,7 @@ import store from "../redux/store";
 import { logout } from "../redux/reducers/AuthSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const api = "https://interngo.onrender.com"; 
+const api = "https://interngo.in/api"; 
 export const axiosInstance = axios.create({
   baseURL: api,
   timeout: 10000,
