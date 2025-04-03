@@ -1,3 +1,5 @@
 import { io } from "socket.io-client";
-const socket = io("https://interngo.in/api", { autoConnect: false });
+import { baseURL } from "./axiosInstance";
+
+const socket = io(baseURL, { autoConnect: false });
 export default socket;

@@ -4,6 +4,7 @@ import  Icon  from 'react-native-vector-icons/Entypo';
 import { useSelector } from 'react-redux';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import { baseURL } from '../../utils/axiosInstance';
 
 export default function DownlodReport({showToast,name,batch,id}) {
     const [loading,setLoading] = useState(false);
@@ -12,7 +13,7 @@ export default function DownlodReport({showToast,name,batch,id}) {
         try{
           setLoading(true);
           showToast('success','Downloading the performance analysis Report...')
-          const url = `https://interngo.in/api/api/feedbacks/${id}/download?token=${token}`;
+          const url = `${baseURL}/api/feedbacks/${id}/download?token=${token}`;
           const fileName = `Intern_${name}-${batch}.pdf`;
           const fileUri = `${FileSystem.documentDirectory}${fileName}`;
           const { uri } = await FileSystem.downloadAsync(url, fileUri);
